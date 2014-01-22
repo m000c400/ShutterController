@@ -8,6 +8,9 @@
 #define GREENPIN 12
 #define BLUEPIN 11
 
+#define SEQUENCETRIGGER 5
+#define SEQUENCEFINISHED 6
+
 long RedDelay = 10000;
 long GreenDelay = 15000;
 long BlueDelay = 20000;
@@ -30,6 +33,8 @@ int RedAddress = 10;
 int GreenAddress = 20;
 int BlueAddress = 30;
 
+int TriggerHistory = HIGH;
+int TriggerStatus;
 
 char COMMANDEND = 0x0D;
 
@@ -42,10 +47,14 @@ void setup()
   pinMode(REDPIN, OUTPUT);
   pinMode(GREENPIN, OUTPUT);
   pinMode(BLUEPIN, OUTPUT);
+  pinMode(SEQUENCETRIGGER, INPUT_PULLUP);
+  pinMode(SEQUENCEFINISHED, OUTPUT);
+  
   
   digitalWrite(REDPIN, LOW);
   digitalWrite(GREENPIN, LOW);
   digitalWrite(BLUEPIN, LOW);
+  digitalWrite(SEQUENCEFINISHED, HIGH);
 
   EEPROM_read(RedAddress,&RedDelay); 
   EEPROM_read(RedAddress+5,&RedOpen);  
@@ -124,6 +133,13 @@ void loop()
     }  
   }
   
+  TriggerStatus = digitalRead(SEQUENCETRIGGER);
+  if(( TriggerStatus == LOW) && (TriggerHistory== HIGH))
+  {
+    ExposureInit();
+  }
+  TriggerHistory = TriggerStatus;
+  
   RunExposure();
   
 }
@@ -131,6 +147,8 @@ void loop()
 void ExposureInit(void)
 {
   ExposureStart = millis();
+  
+  digitalWrite(SEQUENCEFINISHED, LOW);
   
   RedOpenTime = ExposureStart + RedDelay;
   GreenOpenTime = ExposureStart + GreenDelay;
@@ -149,7 +167,10 @@ void RunExposure(void)
     TimeNow = millis();
     
     if( (TimeNow > (RedCloseTime+1000)) && (TimeNow > (GreenCloseTime+1000)) && (TimeNow > (BlueCloseTime+1000)))
-    return;
+    {
+      digitalWrite(SEQUENCEFINISHED,HIGH);
+      return;
+    }
     
     Serial.print(TimeNow-ExposureStart);
     
