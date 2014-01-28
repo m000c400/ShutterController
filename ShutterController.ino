@@ -4,12 +4,12 @@
 #define TRUE 1
 #define FALSE 0
 
-#define REDPIN 13
-#define GREENPIN 12
+#define REDPIN 9
+#define GREENPIN 10
 #define BLUEPIN 11
 
-#define SEQUENCETRIGGER 5
-#define SEQUENCEFINISHED 6
+#define SEQUENCETRIGGER 3  
+#define SEQUENCEFINISHED 5
 
 long RedDelay = 10000;
 long GreenDelay = 15000;
@@ -65,7 +65,7 @@ void setup()
   EEPROM_read(BlueAddress,&BlueDelay); 
   EEPROM_read(BlueAddress+5,&BlueOpen);  
   
-  ExposureInit();
+  //ExposureInit();
 }
 
 void loop() 
@@ -166,7 +166,13 @@ void RunExposure(void)
     
     TimeNow = millis();
     
-    if( (TimeNow > (RedCloseTime+1000)) && (TimeNow > (GreenCloseTime+1000)) && (TimeNow > (BlueCloseTime+1000)))
+    if( (TimeNow > (RedCloseTime+1500)) && (TimeNow > (GreenCloseTime+1500)) && (TimeNow > (BlueCloseTime+1500)))
+    {
+      digitalWrite(SEQUENCEFINISHED,LOW);
+      return;
+    }
+
+    if( (TimeNow > (RedCloseTime+500)) && (TimeNow > (GreenCloseTime+500)) && (TimeNow > (BlueCloseTime+500)))
     {
       digitalWrite(SEQUENCEFINISHED,HIGH);
       return;
