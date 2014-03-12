@@ -4,12 +4,12 @@
 #define TRUE 1
 #define FALSE 0
 
-#define REDPIN 9
-#define GREENPIN 10
-#define BLUEPIN 11
+#define REDPIN 5
+#define GREENPIN 6
+#define BLUEPIN 7
 
-#define SEQUENCETRIGGER 3  
-#define SEQUENCEFINISHED 5
+#define SEQUENCETRIGGER 11  
+#define SEQUENCEFINISHED 4
 
 long RedDelay = 10000;
 long GreenDelay = 15000;
@@ -120,6 +120,21 @@ void loop()
           ChangeBlueTime(&CommandBuffer[9]);
           Report();
         }
+        else if(strstr(CommandBuffer,"tr"))
+        {
+          digitalWrite(REDPIN,!digitalRead(REDPIN));
+          Serial.println("Toggle Red");
+        }
+        else if(strstr(CommandBuffer,"tg"))
+        {
+          digitalWrite(GREENPIN,!digitalRead(GREENPIN));
+          Serial.println("Toggle Green");
+        }
+        else if(strstr(CommandBuffer,"tb"))
+        {
+          digitalWrite(BLUEPIN,!digitalRead(BLUEPIN));
+          Serial.println("Toggle Blue");
+        }
         BufferUsed = 0; 
       }
       else
@@ -136,7 +151,18 @@ void loop()
   TriggerStatus = digitalRead(SEQUENCETRIGGER);
   if(( TriggerStatus == LOW) && (TriggerHistory== HIGH))
   {
-    ExposureInit();
+    Serial.println("Edge Detected");
+    delay(1000);
+    TriggerStatus = digitalRead(SEQUENCETRIGGER);
+    if( TriggerStatus == LOW)
+    {
+      Serial.println("Still High");
+      ExposureInit();
+    }
+    else
+    {
+      Serial.println("Was just a glitch!!");
+    }
   }
   TriggerHistory = TriggerStatus;
   
@@ -178,7 +204,7 @@ void RunExposure(void)
       return;
     }
     
-    Serial.print(TimeNow-ExposureStart);
+    Serial.print((TimeNow-ExposureStart)/1000);
     
     if( (TimeNow > RedOpenTime) && (TimeNow < RedCloseTime))
     {
